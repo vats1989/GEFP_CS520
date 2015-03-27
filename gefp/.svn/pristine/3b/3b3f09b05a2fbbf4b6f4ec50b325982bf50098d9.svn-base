@@ -1,0 +1,130 @@
+
+    create table CheckPoint (
+        checkpoint_id int8 not null,
+        checkpoint_name varchar(255) not null,
+        del_flag char(1) not null,
+        extra_text text,
+        PIC oid,
+        URL varchar(255),
+        dept_id int8,
+        runway_id int8,
+        stage_id int8,
+        primary key (checkpoint_id)
+    );
+
+    create table Department (
+        dept_id int8 not null,
+        dept_name varchar(255) not null,
+        primary key (dept_id)
+    );
+
+    create table RUNWAY_DEPT (
+        runway_id int8 not null,
+        dept_id int8 not null
+    );
+
+    create table Runway (
+        runway_id int8 not null,
+        del_flag char(1) not null,
+        runway_name varchar(255) not null,
+        primary key (runway_id)
+    );
+
+    create table STAGE_DEPT (
+        stage_id int8 not null,
+        dept_id int8 not null
+    );
+
+    create table STAGE_RUNWAY (
+        stage_id int8 not null,
+        runway_id int8 not null
+    );
+
+    create table Stage (
+        stage_id int8 not null,
+        del_flag char(1) not null,
+        stage_name varchar(255) not null,
+        primary key (stage_id)
+    );
+
+    create table USERS (
+        user_id int8 not null,
+        emailid varchar(255) not null,
+        first_name varchar(255) not null,
+        last_name varchar(255) not null,
+        password varchar(255) not null,
+        user_type varchar(255) not null,
+        username varchar(255) not null,
+        dept_id int8,
+        primary key (user_id)
+    );
+
+    create table USER_CHECKPOINTS (
+        checkpoint_id int8 not null,
+        user_id int8 not null
+    );
+
+    alter table USERS 
+        add constraint UK_dc4eq7plr20fdhq528twsak1b unique (username);
+
+    alter table CheckPoint 
+        add constraint FK_s6hvb61h9ja4k8yswwjx0oy9k 
+        foreign key (dept_id) 
+        references Department;
+
+    alter table CheckPoint 
+        add constraint FK_m6wroon9abnx0fi968pa0a4am 
+        foreign key (runway_id) 
+        references Runway;
+
+    alter table CheckPoint 
+        add constraint FK_m6xdlhwhr003jwds76k0onoxl 
+        foreign key (stage_id) 
+        references Stage;
+
+    alter table RUNWAY_DEPT 
+        add constraint FK_6239xh8wa37ebrsvh8t26gwj2 
+        foreign key (dept_id) 
+        references Department;
+
+    alter table RUNWAY_DEPT 
+        add constraint FK_pfuw0bmorxtjsn4cnh0xe1ipm 
+        foreign key (runway_id) 
+        references Runway;
+
+    alter table STAGE_DEPT 
+        add constraint FK_vmull6gepxlgfimy3slywtsv 
+        foreign key (dept_id) 
+        references Department;
+
+    alter table STAGE_DEPT 
+        add constraint FK_r5w2c62gawnc9i3gc7io5cdr5 
+        foreign key (stage_id) 
+        references Stage;
+
+    alter table STAGE_RUNWAY 
+        add constraint FK_jebxho2sk2wg5h1ab89x0xh86 
+        foreign key (runway_id) 
+        references Runway;
+
+    alter table STAGE_RUNWAY 
+        add constraint FK_ha5r203dfcd26jiq4u1lk69bx 
+        foreign key (stage_id) 
+        references Stage;
+
+    alter table USERS 
+        add constraint FK_1e7krrnkm2wsacj299jbbchqq 
+        foreign key (dept_id) 
+        references Department;
+
+    alter table USER_CHECKPOINTS 
+        add constraint FK_h6jg3nunkuhtdmsqf0h0t78r1 
+        foreign key (user_id) 
+        references USERS;
+
+    alter table USER_CHECKPOINTS 
+        add constraint FK_9ctlrsq9r5brj9u436x150ka0 
+        foreign key (checkpoint_id) 
+        references CheckPoint;
+
+    create sequence hibernate_sequence;

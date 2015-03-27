@@ -1,0 +1,165 @@
+-- All Tables Create Statements
+
+CREATE TABLE Department 
+(
+	dept_id int8 NOT NULL,
+	dept_name VARCHAR(255) NOT NULL,
+	PRIMARY KEY (dept_id)
+);
+
+CREATE TABLE USERS 
+(
+	user_id int8 NOT NULL,
+	username VARCHAR(255) NOT NULL,
+	password VARCHAR(255) NOT NULL,
+	first_name varchar(255) NOT NULL,
+    last_name varchar(255) NOT NULL,
+	user_type VARCHAR(255) NOT NULL,
+	emailid varchar(255) NOT null,
+	dept_id int8,
+	PRIMARY KEY (user_id)
+);
+
+CREATE TABLE STAGE (
+	stage_id int8 not null,
+	stage_name varchar(255) not null,
+	del_flag char(1) not null,
+	primary key (stage_id)
+);
+
+CREATE TABLE STAGE_DEPT (
+	stage_id int8 not NULL,
+	dept_id int8 not NULL,
+	primary key(stage_id, dept_id)
+);
+
+CREATE TABLE RUNWAY (
+    runway_id int8 not null,
+    runway_name varchar(255) not null,
+    del_flag char(1) not null,
+    primary key (runway_id)
+);
+
+CREATE TABLE RUNWAY_DEPT (
+	runway_id int8 not NULL,
+	dept_id int8 not NULL,
+	primary key(runway_id, dept_id)
+	
+);
+
+CREATE TABLE STAGE_RUNWAY 
+(
+	stage_id int8 NOT NULL,
+	runway_id int8 NOT NULL,
+	primary key(stage_id,runway_id)
+);
+
+CREATE TABLE CheckPoint 
+(
+	checkpoint_id int8 NOT NULL,
+	checkpoint_name VARCHAR(255) NOT NULL,
+	extra_text text,
+	PIC oid,
+	URL VARCHAR(255),
+	dept_id int8,
+	runway_id int8,
+	stage_id int8,
+	del_flag char(1) not null,
+	PRIMARY KEY (checkpoint_id)
+);
+
+CREATE TABLE USER_CHECKPOINTS 
+(
+	checkpoint_id int8 NOT NULL,
+	user_id int8 NOT NULL,
+	primary key(checkpoint_id,user_id)
+);
+
+
+--All FOREIGN KEY CONSTRAINTs statements
+ALTER TABLE CheckPoint ADD CONSTRAINT FK_s6hvb61h9ja4k8yswwjx0oy9k FOREIGN KEY (dept_id) REFERENCES Department;
+ALTER TABLE CheckPoint ADD CONSTRAINT FK_m6xdlhwhr003jwds76k0onoxl FOREIGN KEY (stage_id)  REFERENCES Stage;
+ALTER TABLE CheckPoint ADD CONSTRAINT FK_m6wroon9abnx0fi968pa0a4am FOREIGN KEY (runway_id) REFERENCES Runway;
+ALTER TABLE RUNWAY_DEPT ADD CONSTRAINT FK_pfuw0bmorxtjsn4cnh0xe1ipm foreign key (runway_id) REFERENCES Runway;
+ALTER TABLE RUNWAY_DEPT ADD CONSTRAINT FK_6239xh8wa37ebrsvh8t26gwj2 foreign key (dept_id) references Department;
+ALTER TABLE STAGE_DEPT ADD CONSTRAINT FK_r5w2c62gawnc9i3gc7io5cdr5 foreign key (stage_id) REFERENCES Stage;
+ALTER TABLE STAGE_DEPT ADD constraint FK_vmull6gepxlgfimy3slywtsv foreign key (dept_id) references Department;
+ALTER TABLE STAGE_RUNWAY ADD CONSTRAINT FK_ha5r203dfcd26jiq4u1lk69bx FOREIGN KEY (stage_id) REFERENCES Stage;
+ALTER TABLE STAGE_RUNWAY ADD CONSTRAINT FK_jebxho2sk2wg5h1ab89x0xh86 FOREIGN KEY (runway_id) REFERENCES Runway;
+ALTER TABLE USERS ADD CONSTRAINT FK_1e7krrnkm2wsacj299jbbchqq FOREIGN KEY (dept_id) REFERENCES Department;
+ALTER TABLE USER_CHECKPOINTS ADD CONSTRAINT FK_h6jg3nunkuhtdmsqf0h0t78r1 FOREIGN KEY (user_id) REFERENCES USERS;
+ALTER TABLE USER_CHECKPOINTS ADD CONSTRAINT FK_9ctlrsq9r5brj9u436x150ka0 FOREIGN KEY (checkpoint_id) REFERENCES CheckPoint;
+ALTER TABLE USERS ADD CONSTRAINT UK_dc4eq7plr20fdhq528twsak1b UNIQUE (username);
+
+--CheckPoint Table Index
+CREATE INDEX CheckPoint_Index ON CheckPoint (checkpoint_id);
+
+--All TABLEs INSERT Statements
+
+--Department TABLE Records
+INSERT INTO department VALUES(1,'Computer Science');
+INSERT INTO department VALUES(2,'Electrical Engineering');
+
+--Users TABLE Records
+INSERT INTO users VALUES(1,'jdoe1','abcd','john','doe','ROLE_STUDENT','jdoe1@calstatela.edu',1);
+INSERT INTO users VALUES(2,'jdoe2','abcd','jemmy','doe','ROLE_STUDENT','jdoe2@calstatela.edu',2);
+INSERT INTO users VALUES(3,'cysun','abcd','chengyu','sun','ROLE_ADMIN','cysun@calstatela.edu',NULL);
+INSERT INTO users VALUES(4,'tfox','abcd','tim','fox','ROLE_ADVISOR','tfox@calstatela.edu',NULL);
+
+--Stage Table Records
+INSERT INTO stage VALUES(1,'Pre-college(pre-flight checklist)','N');
+INSERT INTO stage VALUES(2,'Sophomore(climbing altitude)','N');
+INSERT INTO stage VALUES(3,'Junior(cruising altitude)','N');
+
+--Runway Table Records
+INSERT INTO runway VALUES(1,'Academic Performance','N');
+INSERT INTO runway VALUES(2,'Career Preparation','N');
+INSERT INTO runway VALUES(3,'Leadership & Community Engagement','N');
+
+--CheckPoint TABLE Records
+INSERT INTO CheckPoint VALUES(1,'Algebra (before Yr 1)',NULL, NULL, NULL, 1, 1, 1,'N');
+INSERT INTO CheckPoint VALUES(2,'Pre-calculus (before (Yr 1)',NULL, NULL, NULL, 1, 2, 1,'N');
+INSERT INTO CheckPoint VALUES(3,'Attend STEP',NULL, NULL, NULL, 1, 3, 1,'N');
+INSERT INTO CheckPoint VALUES(4,'Apply for financial aid and scholarships',NULL, NULL, NULL, 1, 1, 2,'N');
+INSERT INTO CheckPoint VALUES(5,'Make a list of questions to ask during orientation and ask them!',NULL, NULL, NULL, 1, 2, 2,'N');
+INSERT INTO CheckPoint VALUES(6,'Take a personality assessment',NULL, NULL, NULL, 1, 3, 2,'N');
+INSERT INTO CheckPoint VALUES(7,'Go to office hours after 1st assignment in every class',NULL, NULL, NULL, 2, 1, 1,'N');
+INSERT INTO CheckPoint VALUES(8,'Identify at least one type of career in your field of interest',NULL, NULL, NULL, 2, 2, 1,'N');
+INSERT INTO CheckPoint VALUES(9,'Pathways to Success Workshop Series – Leadership Development',NULL, NULL, NULL, 2, 3, 1,'N');
+INSERT INTO CheckPoint VALUES(10,'Academic & Personal Advisement',NULL, NULL, NULL,2, 1, 3,'N');
+INSERT INTO CheckPoint VALUES(11,'ECST Week – help run one of the events',NULL, NULL, NULL,2, 2, 3,'N');
+INSERT INTO CheckPoint VALUES(12,'Find out about ECST student organizations',NULL, NULL, NULL,2, 3, 3,'N');
+
+--USER_CHECKPOINTS TABLE Records
+INSERT INTO USER_CHECKPOINTS VALUES(2,1);
+INSERT INTO USER_CHECKPOINTS VALUES(7,2);
+INSERT INTO USER_CHECKPOINTS VALUES(8,2);
+INSERT INTO USER_CHECKPOINTS VALUES(9,2);
+INSERT INTO USER_CHECKPOINTS VALUES(10,2);
+INSERT INTO USER_CHECKPOINTS VALUES(11,2);
+INSERT INTO USER_CHECKPOINTS VALUES(12,2);
+
+--STAGE_RUNWAY TABLE Records
+INSERT INTO STAGE_RUNWAY VALUES(1,1);
+INSERT INTO STAGE_RUNWAY VALUES(1,2);
+INSERT INTO STAGE_RUNWAY VALUES(1,3);
+INSERT INTO STAGE_RUNWAY VALUES(2,1);
+INSERT INTO STAGE_RUNWAY VALUES(2,2);
+INSERT INTO STAGE_RUNWAY VALUES(2,3);
+INSERT INTO STAGE_RUNWAY VALUES(3,1);
+INSERT INTO STAGE_RUNWAY VALUES(3,2);
+INSERT INTO STAGE_RUNWAY VALUES(3,3);
+
+--STAGE_DEPT Table Records
+INSERT INTO STAGE_DEPT VALUES(1,1);
+INSERT INTO STAGE_DEPT VALUES(2,1);
+INSERT INTO STAGE_DEPT VALUES(1,2);
+INSERT INTO STAGE_DEPT VALUES(3,2);
+
+--RUNWAY_DEPT Table Records
+INSERT INTO RUNWAY_DEPT VALUES(1,1);
+INSERT INTO RUNWAY_DEPT VALUES(2,1);
+INSERT INTO RUNWAY_DEPT VALUES(3,1);
+INSERT INTO RUNWAY_DEPT VALUES(1,2);
+INSERT INTO RUNWAY_DEPT VALUES(2,2);
+INSERT INTO RUNWAY_DEPT VALUES(3,2);

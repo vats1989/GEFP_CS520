@@ -1,0 +1,278 @@
+package gefp.web.controller;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.support.SessionStatus;
+
+import gefp.model.*;
+import gefp.model.dao.*;
+
+@Controller
+@SessionAttributes({"user","department","plan","runway","stage","checkpoint","cells"})
+
+public class GefpController {
+
+    @Autowired
+    private UserDao userDao;
+    
+    @Autowired
+    private DepartmentDao departmentDao;
+    
+    @Autowired
+    private PlanDao planDao;
+    
+    @Autowired
+    private RunwayDao runwayDao;
+    
+    @Autowired
+    private StageDao stageDao;
+    
+    @Autowired
+    private CheckPointDao checkPointDao;
+    
+    @Autowired
+    private CellDao cellDao;
+
+    
+    /****************************************************************/
+    /*
+    @RequestMapping(value=("/GoldenEagleFlightPlan.html"), method = RequestMethod.GET)
+    public String gefp(@RequestParam long id,  ModelMap models, HttpSession session)
+    {
+    	User user = userDao.getUser(id);
+		Set<String> roles = (Set<String>) user.getRoles();
+        for(int i = 0; i < roles.size(); i++) {
+        	//if(roles.get(i).getRole_name().equals("ROLE_ADMIN")) {
+        	if(roles.contains("ROLE_ADMIN"))  {
+        		session.setAttribute("login_user", "admin");
+        		return "redirect:DepartmentSelect.html";
+        	}
+        	//else if(roles.get(i).getRole_name().equals("ROLE_ADVISOR"))  {
+        	else if(roles.contains("ROLE_ADVISOR"))	{
+        		session.setAttribute("login_user", "advisor");
+        		return "redirect:GefpAdvisor.html";
+        	}
+        	//else if(roles.get(i).getRole_name().equals("ROLE_USER"))  {
+        	else if(roles.contains("ROLE_USER"))	{
+        		session.setAttribute("login_user", "student");
+        		return "redirect:GefpStudent.html?id="+id;
+        	}
+        }
+        return "redirect:login.html";
+    }
+    */
+    /****************************************************************/
+    
+    
+    /************************Department Select*******************************/
+    @RequestMapping(value=("/AdminArea/DepartmentSelect.html"), method=RequestMethod.GET)
+    public String DepartmentSelect(ModelMap models) {
+    	
+    	models.put("department", departmentDao.getDepartments());
+    	return "AdminArea/DepartmentSelect";
+    }
+    @RequestMapping(value=("/AdminArea/DepartmentSelect.html"), method=RequestMethod.POST)
+    public String DepartmentSelect(@RequestParam String select_dept, ModelMap models, SessionStatus status) {
+    	
+    	long dept_id = Long.parseLong(select_dept);
+    	return "redirect:/AdminArea/GefpAdmin.html?dept_id="+dept_id;
+    }
+    /*******************************Ends******************************/
+    
+    
+    
+    /***************************Admin Page*****************************/
+    @RequestMapping(value=("/AdminArea/GefpAdmin.html"), method=RequestMethod.GET)
+    public String gefp1(@RequestParam long dept_id, ModelMap models, HttpSession session) 
+    {
+    	models.put("department", departmentDao.getDepartment(dept_id));
+    	return "AdminArea/GefpAdmin";
+    }
+    /****************************************************************/
+    
+    
+    /**************************Add Plan*******************************/
+    @RequestMapping(value=("/AdminArea/AddPlan.html"), method=RequestMethod.GET)
+    public String addPlan(@RequestParam long dept_id, ModelMap models) 
+    {
+    	Plan plan = new Plan();
+    	plan.setDepartment(departmentDao.getDepartment(dept_id));
+    	models.put("plan", plan);
+    	return "AdminArea/AddPlan";
+    }
+    @RequestMapping(value = "/AdminArea/AddPlan.html", method = RequestMethod.POST)
+    public String addPlan(@ModelAttribute Plan plan, ModelMap models, SessionStatus status, BindingResult result)
+    {
+    		plan.setPublishedDate(new Date());
+    		Plan newPlan = planDao.savePlan(plan);    	    
+    		return "redirect:/AdminArea/EditPlan.html?plan_id="+newPlan.getId();
+    }
+    /****************************************************************/
+    
+    
+    
+    /**************************Edit Plan******************************/
+    @RequestMapping(value=("/AdminArea/EditPlan.html"), method=RequestMethod.GET)
+    public String editPlan(@RequestParam long plan_id ,ModelMap models) 
+    {
+    	
+    	models.put("plan", planDao.getPlan(plan_id));
+    	return "AdminArea/EditPlan";
+    }
+    /*
+    @RequestMapping(value = "/EditPlan.html", method = RequestMethod.POST)
+    public String editPlan(@ModelAttribute Plan plan, ModelMap models, SessionStatus status, BindingResult result)
+    {
+    		return "redirect:GefpAdmin.html";
+    }
+    */
+    /****************************************************************/
+    
+    
+    
+    /*************************Add Runway*******************************/
+    @RequestMapping(value=("/AdminArea/AddRunway.html"), method=RequestMethod.GET)
+    public String addRunway(@RequestParam long plan_id, ModelMap models) 
+    {
+    	Runway runway = new Runway();
+    	runway.setPlan(planDao.getPlan(plan_id));
+    	models.put("runway", runway);
+    	return "AdminArea/AddRunway";
+    }
+    @RequestMapping(value = "/AdminArea/AddRunway.html", method = RequestMethod.POST)
+    public String addRunway(@ModelAttribute Runway runway, ModelMap models, BindingResult result)
+    {
+    	Runway newRunway = runwayDao.saveRunway(runway);
+    	
+    	List<Stage> stages = newRunway.getPlan().getStages();
+    	Cell cell[] = new Cell[stages.size()];
+    	for(int i=0; i < cell.length; i++) {
+    		cell[i] = new Cell();
+    		cell[i].setPlan(newRunway.getPlan());
+    		cell[i].setRunway(newRunway);
+    		cell[i].setStage(stages.get(i));
+    		cellDao.saveCell(cell[i]);
+    	}
+    	return "redirect:/AdminArea/AddRunway.html?plan_id="+newRunway.getPlan().getId();
+    }
+    /****************************************************************/
+
+    
+    
+    /***************************Add Stage*****************************/
+    @RequestMapping(value=("/AdminArea/AddStage.html"), method=RequestMethod.GET)
+    public String addStage(@RequestParam long plan_id, ModelMap models) 
+    {
+    	Stage stage = new Stage();
+    	stage.setPlan(planDao.getPlan(plan_id));
+    	models.put("stage", stage);
+    	return "AdminArea/AddStage";
+    }
+    @RequestMapping(value = "/AdminArea/AddStage.html", method = RequestMethod.POST)
+    public String addStage(@ModelAttribute Stage stage, ModelMap models, SessionStatus status, BindingResult result)
+    {
+    	Stage newStage = stageDao.saveStage(stage);
+    	
+    	List<Runway> runways = newStage.getPlan().getRunways();
+    	Cell cell[] = new Cell[runways.size()];
+    	for(int i=0; i < cell.length; i++) {
+    		cell[i] = new Cell();
+    		cell[i].setPlan(newStage.getPlan());
+    		cell[i].setRunway(runways.get(i));
+    		cell[i].setStage(newStage);
+    		cellDao.saveCell(cell[i]);
+    	}
+    	
+    	return "redirect:/AdminArea/AddStage.html?plan_id="+newStage.getPlan().getId();
+    }
+    /****************************************************************/
+    
+    
+    
+    /***************************Add CheckPoint*****************************/
+    @RequestMapping(value=("/AdminArea/AddCheckPoint.html"), method=RequestMethod.GET)
+    public String addCheckPoint(@RequestParam long plan_id, ModelMap models, HttpSession session) 
+    {
+    	CheckPoint checkpoint = new CheckPoint();
+    	models.put("checkpoint", checkpoint);
+    	models.put("plan", planDao.getPlan(plan_id));
+    	return "AdminArea/AddCheckPoint";
+    }
+    @RequestMapping(value = "/AdminArea/AddCheckPoint.html", method = RequestMethod.POST)
+    public String addCheckPoint(@ModelAttribute CheckPoint checkpoint, BindingResult result, @RequestParam String cp_stage, @RequestParam String cp_runway, HttpSession session)
+    {
+    		long st_id = Long.parseLong(cp_stage);
+    		long run_id = Long.parseLong(cp_runway);
+    		Cell newCell = null;
+    		Plan plan = (Plan)session.getAttribute("plan");
+    		Plan newPlan = planDao.getPlan(plan.getId());	
+    		List<Cell> cells = newPlan.getCells();
+    		for(int i=0; i<cells.size(); i++)	{
+    			newCell = cells.get(i);
+    			if(newCell.getRunway().getId() == run_id && newCell.getStage().getId() == st_id)	{
+    				break;
+    			}
+    		}
+    		checkpoint.setCell(newCell);
+    		checkPointDao.saveCheckPoint(checkpoint);
+    		return "redirect:/AdminArea/AddCheckPoint.html?plan_id="+plan.getId();
+    }    
+    /****************************************************************/
+    
+    
+    
+    /************************Make Current Plan******************************/
+    @RequestMapping(value="/AdminArea/MakeCurrentPlan.html", method= RequestMethod.GET)
+    public String makeCurrentPlan(@RequestParam long plan_id, ModelMap models) 
+    {
+    	Plan plan = planDao.getPlan(plan_id);
+    	Department dept = plan.getDepartment();
+    	dept.setCurrentPlan(plan);
+    	Department updateDept = departmentDao.saveDepartment(dept);
+    	return "redirect:/AdminArea/GefpAdmin.html?dept_id="+updateDept.getId();
+    }
+    /****************************************************************/
+    
+    
+    
+    /************************Edit CheckPoint********************************/
+    @RequestMapping(value=("/AdminArea/EditCheckPoint.html"), method=RequestMethod.GET)
+    public String editCheckPoint(@RequestParam long cp_id, @RequestParam long plan_id, ModelMap models, HttpSession session) 
+    {
+    	CheckPoint checkpoint = checkPointDao.getCheckPoint(cp_id);
+    	models.put("checkpoint", checkpoint);
+    	models.put("plan", planDao.getPlan(plan_id));
+    	return "AdminArea/EditCheckPoint";
+    }
+    @RequestMapping(value = "/AdminArea/EditCheckPoint.html", method = RequestMethod.POST)
+    public String editCheckPoint(@ModelAttribute CheckPoint checkpoint, BindingResult result, @RequestParam String ecp_stage, @RequestParam String ecp_runway, HttpSession session)
+    {
+    	CheckPoint cp = (CheckPoint) session.getAttribute("checkpoint");
+    	CheckPoint cp1 = checkPointDao.getCheckPoint(cp.getId());
+		long st_id = Long.parseLong(ecp_stage);
+		long run_id = Long.parseLong(ecp_runway);
+		Cell newCell = null;
+		Plan plan = (Plan)session.getAttribute("plan");
+		Plan newPlan = planDao.getPlan(plan.getId());	
+		List<Cell> cells = newPlan.getCells();
+		for(int i=0; i<cells.size(); i++)	{
+			newCell = cells.get(i);
+			if(newCell.getRunway().getId() == run_id && newCell.getStage().getId() == st_id)	{
+				break;
+			}
+		}
+		cp1.setCell(newCell);
+		cp1.setCheckPoint_name(checkpoint.getCheckPoint_name());
+		checkPointDao.saveCheckPoint(cp1);
+		return "redirect:/AdminArea/EditPlan.html?plan_id="+newPlan.getId();   	
+    }
+    /****************************************************************/
+}
